@@ -9,9 +9,10 @@ interface StoryboardCardProps {
   characters: Character[];
   onUpdate: (updated: StoryboardSegment) => void;
   onRemove?: () => void;
+  onProcess?: () => void; // New callback
 }
 
-const StoryboardCard: React.FC<StoryboardCardProps> = ({ segment, characters, onUpdate, onRemove }) => {
+const StoryboardCard: React.FC<StoryboardCardProps> = ({ segment, characters, onUpdate, onRemove, onProcess }) => {
   const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
 
   const handleChange = (field: keyof StoryboardSegment, value: string) => {
@@ -68,23 +69,63 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({ segment, characters, on
   return (
     <div className="group relative bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-all duration-300 backdrop-blur-sm shadow-xl mb-6">
       <div className="flex flex-col md:flex-row">
-        {/* Left Side: Lyrics */}
-        <div className="w-full md:w-1/3 p-6 border-b md:border-b-0 md:border-r border-slate-700/50 bg-slate-900/40">
-          <div className="flex items-center justify-between mb-4">
-            <input 
-              value={segment.sectionTitle}
-              onChange={(e) => handleChange('sectionTitle', e.target.value)}
-              className="bg-blue-600/20 text-blue-400 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider outline-none border border-transparent focus:border-blue-500/50"
-            />
-            {onRemove && (
-              <button onClick={onRemove} className="text-slate-600 hover:text-red-400 transition-colors">
-                <i className="fa-solid fa-trash-can text-xs"></i>
+        {/* Left Side: Lyrics & Status */}
+        <div className="w-full md:w-1/3 p-6 border-b md:border-b-0 md:border-r border-slate-700/50 bg-slate-900/40 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <input 
+                value={segment.sectionTitle}
+                onChange={(e) => handleChange('sectionTitle', e.target.value)}
+                className="bg-blue-600/20 text-blue-400 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider outline-none border border-transparent focus:border-blue-500/50"
+              />
+              {onRemove && (
+                <button onClick={onRemove} className="text-slate-600 hover:text-red-400 transition-colors">
+                  <i className="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              )}
+            </div>
+            <p className="text-base font-medium leading-relaxed italic text-slate-300 whitespace-pre-wrap font-serif">
+              {segment.lyrics}
+            </p>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            {/* Visual Preview Section */}
+            {(segment.firstFrame || segment.lastFrame) && (
+              <div className="grid grid-cols-2 gap-2 mb-2 p-1 bg-black/40 rounded-xl border border-white/5">
+                <div className="aspect-video rounded-lg overflow-hidden bg-slate-800/50 relative border border-white/5">
+                   {segment.firstFrame ? (
+                     <img src={segment.firstFrame} className="w-full h-full object-cover" alt="Start Frame" />
+                   ) : (
+                     <div className="w-full h-full flex items-center justify-center"><i className="fa-solid fa-image text-slate-700"></i></div>
+                   )}
+                   <span className="absolute bottom-1 left-1 px-1 bg-black/60 rounded text-[7px] font-black uppercase text-blue-400 tracking-tighter">Start</span>
+                </div>
+                <div className="aspect-video rounded-lg overflow-hidden bg-slate-800/50 relative border border-white/5">
+                   {segment.lastFrame ? (
+                     <img src={segment.lastFrame} className="w-full h-full object-cover" alt="Peak Frame" />
+                   ) : (
+                     <div className="w-full h-full flex items-center justify-center"><i className="fa-solid fa-image text-slate-700"></i></div>
+                   )}
+                   <span className="absolute bottom-1 left-1 px-1 bg-black/60 rounded text-[7px] font-black uppercase text-indigo-400 tracking-tighter">Peak</span>
+                </div>
+              </div>
+            )}
+
+            {onProcess && (
+              <button 
+                onClick={onProcess}
+                className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border 
+                  ${segment.firstFrame 
+                    ? 'bg-slate-800/40 border-slate-700 text-slate-400 hover:text-white' 
+                    : 'bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600 hover:text-white shadow-lg shadow-blue-500/5'
+                  }`}
+              >
+                <i className={`fa-solid ${segment.firstFrame ? 'fa-rotate' : 'fa-wand-magic-sparkles'}`}></i>
+                {segment.firstFrame ? 'Update Visuals' : 'Process Visuals'}
               </button>
             )}
           </div>
-          <p className="text-base font-medium leading-relaxed italic text-slate-300 whitespace-pre-wrap font-serif">
-            {segment.lyrics}
-          </p>
         </div>
 
         {/* Right Side: Editable Visuals */}
@@ -117,7 +158,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({ segment, characters, on
                   <textarea 
                     value={segment.cameraWork}
                     onChange={(e) => handleChange('cameraWork', e.target.value)}
-                    rows={3}
+                    rows={4}
                     className="w-full bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 text-xs text-slate-300 outline-none focus:border-blue-500/50 resize-none"
                     placeholder="Describe camera movement, lens, and focus..."
                   />
@@ -132,7 +173,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({ segment, characters, on
                   <textarea 
                     value={segment.lightingMood}
                     onChange={(e) => handleChange('lightingMood', e.target.value)}
-                    rows={3}
+                    rows={4}
                     className="w-full bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 text-xs text-slate-300 outline-none focus:border-blue-500/50 resize-none"
                     placeholder="Describe lighting setup, color palette, and atmospheric effects..."
                   />
@@ -158,7 +199,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({ segment, characters, on
                 </button>
               </div>
               {segment.mermaidDiagram ? (
-                <div className="w-full max-h-[350px] overflow-auto bg-slate-900/50 rounded-xl scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+                <div className="w-full max-h-[400px] overflow-auto bg-slate-900/50 rounded-xl scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                   <MermaidChart chart={segment.mermaidDiagram} id={segment.id} />
                 </div>
               ) : (

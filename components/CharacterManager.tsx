@@ -17,6 +17,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ characters = [], on
     const char: Character = {
       id: `char-${Date.now()}`,
       name: newName.trim(),
+      images: []
     };
     onUpdate([...characters, char]);
     setNewName('');
@@ -34,18 +35,23 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ characters = [], on
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !activeCharId) return;
+    const files = Array.from(e.target.files || []) as File[];
+    if (files.length === 0 || !activeCharId) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      onUpdate(characters.map(c => 
-        c.id === activeCharId ? { ...c, imageUrl: dataUrl } : c
-      ));
-      setActiveCharId(null);
-    };
-    reader.readAsDataURL(file);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        onUpdate(characters.map(c => 
+          c.id === activeCharId 
+            ? { ...c, images: [...(c.images || []), dataUrl].slice(0, 5) } 
+            : c
+        ));
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    setActiveCharId(null);
     e.target.value = '';
   };
 
@@ -91,8 +97,8 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ characters = [], on
               onClick={() => triggerUpload(char.id)}
               className="w-10 h-10 rounded-full bg-slate-900 border border-slate-700 overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors group/img"
             >
-              {char.imageUrl ? (
-                <img src={char.imageUrl} alt={char.name} className="w-full h-full object-cover" />
+              {char.images && char.images.length > 0 ? (
+                <img src={char.images[0]} alt={char.name} className="w-full h-full object-cover" />
               ) : (
                 <i className="fa-solid fa-user-plus text-slate-600 group-hover/img:text-blue-500"></i>
               )}
@@ -100,13 +106,16 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ characters = [], on
             
             <div className="flex flex-col">
               <span className="text-sm font-bold text-slate-200">{char.name}</span>
-              <button 
-                type="button"
-                onClick={() => removeCharacter(char.id)}
-                className="text-[10px] text-slate-500 hover:text-red-400 text-left transition-colors"
-              >
-                Remove
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-[8px] text-blue-400 uppercase font-bold">{(char.images || []).length} Refs</span>
+                <button 
+                  type="button"
+                  onClick={() => removeCharacter(char.id)}
+                  className="text-[10px] text-slate-500 hover:text-red-400 text-left transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -121,6 +130,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ characters = [], on
         ref={fileInputRef} 
         onChange={handleImageUpload} 
         accept="image/*" 
+        multiple
         className="hidden" 
       />
     </div>

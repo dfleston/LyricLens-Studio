@@ -2,7 +2,7 @@
 export interface Character {
   id: string;
   name: string;
-  imageUrl?: string;
+  images: string[]; // Support multiple reference images
 }
 
 export interface StoryboardSegment {
@@ -14,7 +14,9 @@ export interface StoryboardSegment {
   lightingMood: string;
   mermaidDiagram?: string;
   isProcessing?: boolean;
-  characters?: string[]; // IDs or names of characters present in this scene
+  characters?: string[]; // Names of characters present
+  firstFrame?: string; // Generated base64 image
+  lastFrame?: string;  // Generated base64 image
 }
 
 export interface StoryboardProject {
@@ -32,5 +34,6 @@ export enum AppStep {
   DEFINE_SCENES = 'DEFINE_SCENES',
   PRODUCTION = 'PRODUCTION',
   RESOURCES = 'RESOURCES',
+  FRAME_DEV = 'FRAME_DEV', // New step for visual generation
   PRESENTATION = 'PRESENTATION'
 }
