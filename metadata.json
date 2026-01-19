@@ -1,0 +1,5 @@
+{
+  "name": "LyricLens: Video Storyboarder",
+  "description": "Transform song lyrics into detailed cinematic storyboards with automated visual descriptions and scene-flow diagrams using Gemini AI and Mermaid.js.",
+  "requestFramePermissions": []
+}
