@@ -32,8 +32,7 @@ export interface StoryboardProject {
 export enum AppStep {
   PASTE_LYRICS = 'PASTE_LYRICS',
   DEFINE_SCENES = 'DEFINE_SCENES',
-  PRODUCTION = 'PRODUCTION',
   RESOURCES = 'RESOURCES',
-  FRAME_DEV = 'FRAME_DEV', // New step for visual generation
-  PRESENTATION = 'PRESENTATION'
+  PRODUCTION = 'PRODUCTION',
+  FRAME_DEV = 'FRAME_DEV'
 }

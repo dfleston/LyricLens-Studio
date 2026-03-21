@@ -31,13 +31,30 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, id }) => {
               .replace(/```/g, '')
               .trim();
           
-          // Improved aggressive fix for unquoted labels with @ or special chars
-          // Wraps content inside [] or () in quotes if it contains @ and isn't already quoted
-          cleanChart = cleanChart.replace(/\[([^"\]\n]*@[^"\]\n]*)\]/g, '["$1"]');
-          cleanChart = cleanChart.replace(/\(([^"\)\n]*@[^"\)\n]*)\)/g, '("$1")');
+          // More robust fix for Mermaid syntax errors. 
+          // AI often includes special characters like |, +, . inside brackets which breaks Mermaid.
+          // We wrap all text content inside brackets/parens/curly braces in double quotes if they aren't already.
           
-          // Catch any leftover problematic chars in unquoted node IDs if possible, 
-          // though usually it's the labels.
+          // Fix for nodes like A[Some Label] -> A["Some Label"]
+          cleanChart = cleanChart.replace(/\[([^"\]\n]+)\]/g, (match, p1) => {
+              const inner = p1.trim();
+              if (inner.startsWith('"') && inner.endsWith('"')) return match;
+              return `["${inner.replace(/"/g, "'")}"]`;
+          });
+
+          // Fix for nodes like A(Some Label) -> A("Some Label")
+          cleanChart = cleanChart.replace(/\(([^"\)\n]+)\)/g, (match, p1) => {
+              const inner = p1.trim();
+              if (inner.startsWith('"') && inner.endsWith('"')) return match;
+              return `("${inner.replace(/"/g, "'")}")`;
+          });
+
+          // Fix for nodes like A{Some Label} -> A{"Some Label"}
+          cleanChart = cleanChart.replace(/\{([^"\}\n]+)\}/g, (match, p1) => {
+              const inner = p1.trim();
+              if (inner.startsWith('"') && inner.endsWith('"')) return match;
+              return `{"${inner.replace(/"/g, "'")}"}`;
+          });
           
           if (!cleanChart.startsWith('graph') && !cleanChart.startsWith('flowchart')) {
             cleanChart = 'graph TD\n' + cleanChart;
